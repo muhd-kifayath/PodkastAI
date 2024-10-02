@@ -13,6 +13,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Foundation;
+using Windows.Storage;
 using Windows.Foundation.Collections;
 using OpenAI.Interfaces;
 using OpenAI.ObjectModels.RequestModels;
@@ -43,6 +44,11 @@ namespace Podkast.Pages
             {
                 Environment.SetEnvironmentVariable("OPENAI_API_KEY", SetOpenAIKeyTextBox.Text);
                 var openAiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
+
+                // Store a value in windows
+                ApplicationDataContainer localSettings = ApplicationData.Current.LocalSettings;
+                localSettings.Values["OPENAI_API_KEY"] = openAiKey;
+
                 System.Diagnostics.Debug.WriteLine(openAiKey);
                 ShowMessageDialogSuccess("Environment Variable Set Successfully");
             }
@@ -87,7 +93,7 @@ namespace Podkast.Pages
         private async void ShowMessageDialogInfo()
         {
             /*
-            string message = "<BPS ID: GSLABGAVSVIT009 (Podcast Summarization)" + "\r\nTeam ID: 53495\r\nAkilesh S 21MIS1167 \r\nRajeev Sekar 21MIS1152 \r\nTulasi Raman R 21MIS1170";
+            string message = ""
             ContentDialog noWifiDialog = new ContentDialog()
             {
                 XamlRoot = this.XamlRoot,
@@ -107,19 +113,18 @@ namespace Podkast.Pages
 
             // Create a Run with the bold text
             Run boldRun = new Run();
-            boldRun.Text = "PS ID: GSLABGAVSVIT009 (Podcast Summarization)";
+            boldRun.Text = "AI J Component (Podcast Summarization)";
             boldRun.FontWeight = FontWeights.Bold; // Using FontWeight from Windows.UI.Xaml namespace
             paragraph.Inlines.Add(boldRun);
 
             // Add the rest of the message as plain text
             paragraph.Inlines.Add(new LineBreak());
-            paragraph.Inlines.Add(new Run { Text = "Team ID: 53495" });
             paragraph.Inlines.Add(new LineBreak());
-            paragraph.Inlines.Add(new Run { Text = "Akilesh S 21MIS1167" });
-            paragraph.Inlines.Add(new LineBreak());
-            paragraph.Inlines.Add(new Run { Text = "Rajeev Sekar 21MIS1152" });
+            paragraph.Inlines.Add(new Run { Text = "Muhammad Kifayathullah 21MIS1172" });
             paragraph.Inlines.Add(new LineBreak());
             paragraph.Inlines.Add(new Run { Text = "Tulasi Raman R 21MIS1170" });
+            paragraph.Inlines.Add(new LineBreak());
+            paragraph.Inlines.Add(new Run { Text = "Milind Vamsi 21MIS1132" });
 
             // Add the paragraph to the RichTextBlock
             richTextBlock.Blocks.Add(paragraph);

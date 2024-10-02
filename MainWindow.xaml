@@ -41,7 +41,7 @@
 
     <NavigationView x:Name="nvSample"
         IsTitleBarAutoPaddingEnabled="False"
-            AlwaysShowHeader="False"
+            AlwaysShowHeader="True"
             Header=""
             IsTabStop="False" >
             <NavigationView.HeaderTemplate>

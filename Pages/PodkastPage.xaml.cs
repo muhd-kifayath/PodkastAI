@@ -42,12 +42,16 @@ namespace Podkast.Pages
         public PodkastPage()
         {
             this.InitializeComponent();
-            var openAiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
-
-            openAiService = new OpenAIService(new OpenAiOptions()
+            var openAiKey = "";
+            openAiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
+            if (openAiKey != null)
             {
-                ApiKey = openAiKey
-            });
+                openAiService = new OpenAIService(new OpenAiOptions()
+                {
+                    ApiKey = openAiKey
+                });
+            }
+
 
         }
         private async void PickAFileButton_Click(object sender, RoutedEventArgs e)
@@ -179,7 +183,7 @@ namespace Podkast.Pages
             }
 
             //Title
-            conversationContext.Add(ChatMessage.FromUser("What is the name of this podcast? Tell the name only"));
+            conversationContext.Add(ChatMessage.FromUser("What is the name of this podcast? Tell the name only, if you cannot find the name from the audio file, generate one from the summary"));
 
             var titleResult = await openAiService.ChatCompletion.CreateCompletion(new ChatCompletionCreateRequest()
             {
@@ -191,6 +195,7 @@ namespace Podkast.Pages
             if (titleResult != null && titleResult.Successful)
             {
                 podkastTitle.Text = titleResult.Choices.First().Message.Content.ToString();
+
                 conversationContext.Add(titleResult.Choices.First().Message); // Add AI response to conversation context
             }
             else
@@ -198,7 +203,7 @@ namespace Podkast.Pages
                 podkastTitle.Text = (titleResult.Error?.Message).ToString();
             }
 
-            conversationContext.Add(ChatMessage.FromUser("Tell only the names of the speakers in the podcast"));
+            conversationContext.Add(ChatMessage.FromUser("Tell only the names of the speakers in the podcast, if you cannot find not even one author from the audio, return the keyword 'bashful'"));
 
             //Hosts and Speakers results
 
@@ -211,7 +216,14 @@ namespace Podkast.Pages
 
             if (hostsResult != null && hostsResult.Successful)
             {
-                podkastHosts.Text = hostsResult.Choices.First().Message.Content.ToString();
+                var hosts = hostsResult.Choices.First().Message.Content.ToString();
+                if (hosts.ToLower().Contains("bashful"))
+                {
+                    hosts = "Rick Astley";
+                }
+
+                podkastHosts.Text = hosts;
+
                 conversationContext.Add(hostsResult.Choices.First().Message); // Add AI response to conversation context
             }
             else
@@ -278,10 +290,12 @@ namespace Podkast.Pages
                     byte[] imageBytes = await client.GetByteArrayAsync(urlForAlbumArtGen);
 
                     // Write the image bytes to a local file
-                    await File.WriteAllBytesAsync(@"C:\Users\akile\OneDrive\Desktop\temp_image_art.png", imageBytes);
+                    await File.WriteAllBytesAsync(@"D:\Projects\temp_image_art.png", imageBytes);
 
-                    podkastAlbumArt.Source = new BitmapImage(new Uri(@"C:\Users\akile\OneDrive\Desktop\temp_image_art.png"));
-
+                    DispatcherQueue.TryEnqueue(() =>
+                    {
+                        podkastAlbumArt.Source = new BitmapImage(new Uri(@"D:\Projects\temp_image_art.png"));
+                    });
 
 
                 }
@@ -300,11 +314,12 @@ namespace Podkast.Pages
             // Reset podcast album art to the default image
             // Ensure the image path matches your project's file structure
             podkastAlbumArt.Source = new BitmapImage(new Uri("ms-appx:///Assets/Blue-Logo.png"));
+            byte[] imageBytes = new byte[0];
 
             try
             {
                 // Get the file to delete synchronously
-                StorageFile fileToDelete = StorageFile.GetFileFromApplicationUriAsync(new Uri(@"C:\Users\akile\OneDrive\Desktop\temp_image_art.png")).AsTask().Result;
+                StorageFile fileToDelete = StorageFile.GetFileFromApplicationUriAsync(new Uri(@"D:\Projects\temp_image_art.png")).AsTask().Result;
 
                 // Delete the file synchronously
                 fileToDelete.DeleteAsync().AsTask().Wait();
