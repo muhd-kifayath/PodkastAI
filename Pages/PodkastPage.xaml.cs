@@ -372,6 +372,11 @@ namespace Podkast.Pages
         {
             ApplicationDataContainer localSettings = ApplicationData.Current.LocalSettings;
 
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                podkastAlbumArt.Source = new BitmapImage(new Uri(@"D:\Projects\temp_image_art.png"));
+            });
+
             if (localSettings.Values.ContainsKey("podkastTitle"))
             {
                 podkastTitle.Text = localSettings.Values["podkastTitle"] as string;
