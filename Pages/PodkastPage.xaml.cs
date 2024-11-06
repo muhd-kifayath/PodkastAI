@@ -42,6 +42,7 @@ namespace Podkast.Pages
         public PodkastPage()
         {
             this.InitializeComponent();
+            LoadState();
             var openAiKey = "";
             openAiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
             if (openAiKey != null)
@@ -305,49 +306,27 @@ namespace Podkast.Pages
             }
         }
 
-            private void ClearButton_Click(object sender, RoutedEventArgs e)
+        private void ClearButton_Click(object sender, RoutedEventArgs e)
         {
-            // Reset podcast title and hosts to default values
+            // Reset UI elements
             podkastTitle.Text = "Title";
             podkastHosts.Text = "Hosts and Speakers";
-
-            // Reset podcast album art to the default image
-            // Ensure the image path matches your project's file structure
             podkastAlbumArt.Source = new BitmapImage(new Uri("ms-appx:///Assets/Blue-Logo.png"));
-            byte[] imageBytes = new byte[0];
-
-            try
-            {
-                // Get the file to delete synchronously
-                StorageFile fileToDelete = StorageFile.GetFileFromApplicationUriAsync(new Uri(@"D:\Projects\temp_image_art.png")).AsTask().Result;
-
-                // Delete the file synchronously
-                fileToDelete.DeleteAsync().AsTask().Wait();
-
-                Console.WriteLine("File deleted successfully.");
-            }
-            catch (AggregateException ex)
-            {
-                foreach (var innerException in ex.InnerExceptions)
-                {
-                    Console.WriteLine($"Error deleting file: {innerException.Message}");
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error deleting file: {ex.Message}");
-            }
-
-                // Reset transcript, summary, and context windows to default values
-                podkastTranscript.Text = "Podcast Transcript goes here.";
+            podkastTranscript.Text = "Podcast Transcript goes here.";
             podkastSummary.Text = "Podcast Summary goes here.";
             podkastSimilar.Text = "The Genre of the podcast";
-
-            // Clear conversation window
             ConversationList.Items.Clear();
             PickAFileOutputTextBlock.Text = "";
-
             conversationContext.Clear();
+
+            // Clear local storage
+            ApplicationDataContainer localSettings = ApplicationData.Current.LocalSettings;
+            localSettings.Values.Remove("podkastTitle");
+            localSettings.Values.Remove("podkastHosts");
+            localSettings.Values.Remove("podkastTranscript");
+            localSettings.Values.Remove("podkastSummary");
+            localSettings.Values.Remove("podkastSimilar");
+            //localSettings.Values.Remove("conversationContext");
         }
         private void InputTextBox_KeyDown(object sender, KeyRoutedEventArgs e)
         {
@@ -372,6 +351,56 @@ namespace Podkast.Pages
             ConversationScrollViewer.UpdateLayout();
             ConversationScrollViewer.ChangeView(null, ConversationScrollViewer.ScrollableHeight, null);
 
+        }
+        private void SaveState()
+        {
+            ApplicationDataContainer localSettings = ApplicationData.Current.LocalSettings;
+
+            localSettings.Values["podkastTitle"] = podkastTitle.Text;
+            localSettings.Values["podkastHosts"] = podkastHosts.Text;
+            localSettings.Values["podkastTranscript"] = podkastTranscript.Text;
+            localSettings.Values["podkastSummary"] = podkastSummary.Text;
+            localSettings.Values["podkastSimilar"] = podkastSimilar.Text;
+            //localSettings.Values["conversationContext"] = string.Join("||", conversationContext.Select(c => c.Content));
+        }
+        protected override void OnNavigatedFrom(NavigationEventArgs e)
+        {
+            base.OnNavigatedFrom(e);
+            SaveState();
+        }
+        private void LoadState()
+        {
+            ApplicationDataContainer localSettings = ApplicationData.Current.LocalSettings;
+
+            if (localSettings.Values.ContainsKey("podkastTitle"))
+            {
+                podkastTitle.Text = localSettings.Values["podkastTitle"] as string;
+            }
+            if (localSettings.Values.ContainsKey("podkastHosts"))
+            {
+                podkastHosts.Text = localSettings.Values["podkastHosts"] as string;
+            }
+            if (localSettings.Values.ContainsKey("podkastTranscript"))
+            {
+                podkastTranscript.Text = localSettings.Values["podkastTranscript"] as string;
+            }
+            if (localSettings.Values.ContainsKey("podkastSummary"))
+            {
+                podkastSummary.Text = localSettings.Values["podkastSummary"] as string;
+            }
+            if (localSettings.Values.ContainsKey("podkastSimilar"))
+            {
+                podkastSimilar.Text = localSettings.Values["podkastSimilar"] as string;
+            }
+            //if (localSettings.Values.ContainsKey("conversationContext"))
+            //{
+            //    var messages = (localSettings.Values["conversationContext"] as string).Split(new[] { "||" }, StringSplitOptions.None);
+            //    conversationContext = messages.Select(m => ChatMessage.FromUser(m)).ToList();
+            //    foreach (var message in messages)
+            //    {
+            //        AddMessageToConversation(message);
+            //    }
+            //}
         }
     }
 }
