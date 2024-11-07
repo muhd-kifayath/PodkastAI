@@ -27,6 +27,19 @@
             <TextBox x:Name="SetOpenAIKeyTextBox" PlaceholderText="Enter OpenAI Key" TextWrapping="Wrap" Width="500" MaxWidth="700" Height="20" MaxHeight="20"/>
             <Button Margin="10,0,0,0"  x:Name="SetKey" Content="Set Key" Click="SetOpenAIKeyButton_Click" HorizontalAlignment="Right"/>
         </StackPanel>
+        <StackPanel Grid.Row="3" Orientation="Vertical" Margin="0,30,0,0">
+            <TextBlock Text="Set Default Language"  Margin="0,0,0,20" />
+            <DropDownButton x:Name="Language" Content="Language">
+                <DropDownButton.Flyout>
+                    <MenuFlyout Placement="Bottom">
+                        <MenuFlyoutItem x:Name="EnglishItem" Text="English" Click="LanguageItem_Click"/>
+                        <MenuFlyoutItem x:Name="TamilItem" Text="Tamil" Click="LanguageItem_Click"/>
+                        <MenuFlyoutItem x:Name="HindiItem" Text="Hindi" Click="LanguageItem_Click"/>
+                    </MenuFlyout>
+                </DropDownButton.Flyout>
+            </DropDownButton>
+
+        </StackPanel>
 
         <HyperlinkButton Margin="10,0,0,0" Grid.Row="3" x:Name="Info" Content="Info"  Click="InfoButton_Click" HorizontalAlignment="Left" VerticalAlignment="Bottom"/>
     </Grid>

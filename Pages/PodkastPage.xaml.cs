@@ -24,6 +24,7 @@ using Microsoft.UI;
 using Microsoft.UI.Xaml.Media.Imaging;
 using OpenAI.ObjectModels.ResponseModels;
 using Windows.Storage.Streams;
+using Windows.Globalization;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -39,6 +40,7 @@ namespace Podkast.Pages
         private StorageFile file;
         public string urlForAlbumArtGen;
         private List<ChatMessage> conversationContext = new List<ChatMessage>();
+        private string language = "";
         public PodkastPage()
         {
             this.InitializeComponent();
@@ -53,6 +55,12 @@ namespace Podkast.Pages
                 });
             }
 
+            ApplicationDataContainer localSettings = ApplicationData.Current.LocalSettings;
+
+            if (localSettings.Values.ContainsKey("defaultLanguage"))
+            {
+                language = localSettings.Values["defaultLanguage"] as string;
+            }
 
         }
         private async void PickAFileButton_Click(object sender, RoutedEventArgs e)
@@ -97,6 +105,8 @@ namespace Podkast.Pages
                 AddMessageToConversation($"You: {userInput}");
                 InputTextBox.Text = string.Empty;
 
+                conversationContext.Add(ChatMessage.FromUser("Default Language: "+language+" Always answer the qns in the default language, even if the question is not in the default language."));
+
                 conversationContext.Add(ChatMessage.FromUser(userInput)); // Add user input to conversation context
 
                 var completionResult = await openAiService.ChatCompletion.CreateCompletion(new ChatCompletionCreateRequest()
@@ -120,7 +130,10 @@ namespace Podkast.Pages
 
         private async void StartMagicButton_Click(object sender, RoutedEventArgs e)
         {
-            conversationContext.Add(ChatMessage.FromUser("You are Podkast AI. An Generative AI tool used to summarize podcasts uploaded and transcripted. Keep your responses short. Do no hallucinate information that was not provided to you although attempt answering questions only if you confidently know the context."));
+
+            System.Diagnostics.Debug.WriteLine($"Default Language: {language}");
+
+            conversationContext.Add(ChatMessage.FromUser("You are Podkast AI. An Generative AI tool used to summarize podcasts uploaded and transcripted. Keep your responses short. Do no hallucinate information that was not provided to you although attempt answering questions only if you confidently know the context. Default language: "+language+". You must reply to the questions only in the default language. Even if the question is asked in any other language. Especially the summary, title and context."));
 
             string fileName = file.Name;
 
@@ -164,7 +177,7 @@ namespace Podkast.Pages
             }
 
             //Summarization
-            conversationContext.Add(ChatMessage.FromUser("Summarize the Podcast"));
+            conversationContext.Add(ChatMessage.FromUser("Summarize the Podcast in the default language: "+language));
 
             var summaryResult = await openAiService.ChatCompletion.CreateCompletion(new ChatCompletionCreateRequest()
             {
@@ -184,7 +197,7 @@ namespace Podkast.Pages
             }
 
             //Title
-            conversationContext.Add(ChatMessage.FromUser("What is the name of this podcast? Tell the name only, if you cannot find the name from the audio file, generate one from the summary"));
+            conversationContext.Add(ChatMessage.FromUser("What is the name of this podcast? Tell the name only, if you cannot find the name from the audio file, generate one from the summary in the default language: "+language));
 
             var titleResult = await openAiService.ChatCompletion.CreateCompletion(new ChatCompletionCreateRequest()
             {
@@ -327,6 +340,13 @@ namespace Podkast.Pages
             localSettings.Values.Remove("podkastSummary");
             localSettings.Values.Remove("podkastSimilar");
             //localSettings.Values.Remove("conversationContext");
+
+            // Delete the image file
+            string imagePath = @"D:\Projects\temp_image_art.png";
+            if (File.Exists(imagePath))
+            {
+                File.Delete(imagePath);
+            }
         }
         private void InputTextBox_KeyDown(object sender, KeyRoutedEventArgs e)
         {
@@ -363,23 +383,24 @@ namespace Podkast.Pages
             localSettings.Values["podkastSimilar"] = podkastSimilar.Text;
             //localSettings.Values["conversationContext"] = string.Join("||", conversationContext.Select(c => c.Content));
         }
-        protected override void OnNavigatedFrom(NavigationEventArgs e)
-        {
-            base.OnNavigatedFrom(e);
-            SaveState();
-        }
+            protected override void OnNavigatedFrom(NavigationEventArgs e)
+            {
+                base.OnNavigatedFrom(e);
+                SaveState();
+            }
         private void LoadState()
         {
             ApplicationDataContainer localSettings = ApplicationData.Current.LocalSettings;
 
-            DispatcherQueue.TryEnqueue(() =>
-            {
-                podkastAlbumArt.Source = new BitmapImage(new Uri(@"D:\Projects\temp_image_art.png"));
-            });
+            
 
             if (localSettings.Values.ContainsKey("podkastTitle"))
             {
                 podkastTitle.Text = localSettings.Values["podkastTitle"] as string;
+                DispatcherQueue.TryEnqueue(() =>
+                {
+                    podkastAlbumArt.Source = new BitmapImage(new Uri(@"D:\Projects\temp_image_art.png"));
+                });
             }
             if (localSettings.Values.ContainsKey("podkastHosts"))
             {

@@ -90,6 +90,42 @@ namespace Podkast.Pages
             ShowMessageDialogInfo();
         }
 
+        private void LanguageItem_Click(object sender, RoutedEventArgs e)
+        {
+            MenuFlyoutItem selectedLanguage = sender as MenuFlyoutItem;
+            string language = selectedLanguage.Text;
+
+            ApplicationDataContainer localSettings = ApplicationData.Current.LocalSettings;
+
+            if (language == null)
+            {
+                language = "English";
+            }
+
+            localSettings.Values["defaultLanguage"] = language;
+
+            ShowLanguageSetDialog(language);
+        }
+
+        private async void ShowLanguageSetDialog(string language)
+        {
+            ContentDialog languageSetDialog = new ContentDialog()
+            {
+                XamlRoot = this.XamlRoot,
+                Title = "Language Set",
+                Content = $"The language has been set to {language}.",
+                CloseButtonText = "Ok"
+            };
+
+            await languageSetDialog.ShowAsync();
+        }
+
+
+
+
+
+
+
         private async void ShowMessageDialogInfo()
         {
             /*
